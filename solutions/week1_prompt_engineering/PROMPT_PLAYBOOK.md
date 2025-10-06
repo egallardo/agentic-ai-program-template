@@ -40,6 +40,9 @@ Chain-of-Thought|Explain photosynthesis step-by-step, from inputs to outputs|Mis
 ## Insight Log
 Record notable surprises, regressions, or improvements.
 - Day 1:
+
+Mistral model on the Chain-of-Thought prompt. It didn't just provide a weak answer; it entered a repetitive loop, broke its formatting, and introduced significant errors. This reveals a critical instability when faced with structured reasoning tasks
+
 - Day 2:
 - Day 3:
 
@@ -76,8 +79,22 @@ Record notable surprises, regressions, or improvements.
 ## Reflection (End of Week)
 Answer briefly:
 1. Which two prompt patterns yielded the largest delta between models?
+
+Answer:
+The two prompt patterns with the largest performance difference between models were Role and Chain-of-Thought. the Role prompt showed a significant gap in adherence, the Chain-of-Thought prompt resulted in a complete model failure for Mistral, which produced a repetitive, factually incorrect, and unusable response
+
 2. Which failure mode was most frequent? Root cause?
+
+Answer:
+The most significant failure mode was Mistral's Incomplete Response / Repetition, seen in the Chain-of-Thought prompt. leads to an output loop and factual hallucination.
+
 3. Default model choice for: explanation / reasoning / structure.
+
+Answer:
+Explanation: Llama3, for its comprehensive and accurate responses.
+Reasoning: Llama3, executed the step-by-step task.
+Structure: Llama3, for consistently providing well-formatted and structured outputs.
+
 4. Open questions heading into Week 2.
 *   **Ambiguity:**
     *   Avoid vague or open-ended questions. Be as specific as possible.
