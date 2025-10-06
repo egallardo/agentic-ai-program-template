@@ -21,6 +21,12 @@ hallucination, verbosity, shallow, drift (format), persona-loss, json-break, con
 ## Results Table (Populate During Lab)
 | Prompt Pattern | Example Used | Model | Adherence (1–5) | Reasoning (1–5) | Style (1–5) | Format (1–5) | Failure Modes | Notes | Reuse? (Y/N) |
 |----------------|--------------|-------|------------------|-----------------|-------------|--------------|---------------|-------|--------------|
+Simple|Explain photosynthesis|Llama3|5|5|5|5|None|clear definition, very comprehensive|-
+Simple|Explain photosynthesis|Mistral|3|5|5|3|Missing Information|less comprenhensive than Llama3, missing some info|-
+Role|Explain photosynthesis as a Science Teacher|Llama3|5|5|5|5|None|explanation is simple and accurate and follows the teacher persona|-
+Role|Explain photosynthesis as a Science Teacher|Mistral|3|5|3|3|Inconsistency| very technical |-
+Chain-of-Thought|Explain photosynthesis step-by-step, from inputs to outputs|Llama3|5|5|5|5|None|-|-
+Chain-of-Thought|Explain photosynthesis step-by-step, from inputs to outputs|Mistral|1|1|1|1|Incomplete response, repetition| looper with a broken response|-
 
 ## Model Summary (After Initial Pass)
 | Capability | Best Model(s) | Evidence Snippet | Notes |
