@@ -74,7 +74,7 @@ def query_anthropic(prompt, model="claude-3-haiku-20240307"):
     except Exception as e:
         return f"Error querying Anthropic: {e}"
 
-def query_gemini(prompt, model="gemini-pro"):
+def query_gemini(prompt, model="gemini-2.5-flash"):
     """Sends a prompt to the Google Gemini API."""
     print(f"\n--- Querying Gemini ({model}) ---")
     if not GEMINI_API_KEY:
@@ -87,9 +87,17 @@ def query_gemini(prompt, model="gemini-pro"):
         return f"Error querying Gemini: {e}"
 
 DEFAULT_PROMPTS = {
-    "Simple": "Explain photosynthesis.",
-    "Role": "You are a biology professor. Explain photosynthesis to a high school student.",
-    "Chain-of-Thought": """Explain photosynthesis step-by-step, start with inputs (what plants need) and end with outputs.""",
+    ##"Simple": "Explain photosynthesis.",
+    ##"Role": "You are a biology professor. Explain photosynthesis to a high school student.",
+    
+    ##Assignments
+    ##"Chain-of-Thought": "Explain the following math word problem step-by-step, start with inputs and end with outputs. Adrianna has 10 pieces of gum to share with her friends. There wasn’t enough gum for all her friends, so she went to the store to get 3 more pieces of gum. How many pieces of gum does Adrianna have now? ",
+    ##"Simple": "create a new text, a single sentence, preserving the main idea and key details."+ 
+    ##   "Text1: The annual migration of monarch butterflies spans thousands of miles from the United States and Canada to their overwintering grounds in Mexico. This incredible journey is one of the longest and most spectacular insect migrations known to science. They navigate using a combination of the sun's position and the Earth's magnetic field."+
+    ##   "Text: Photosynthesis is the process used by plants, algae, and certain bacteria to convert light energy, usually from the Sun, into chemical energy that can be later released to fuel the organism's activities. This chemical energy is stored in carbohydrate molecules, such as sugars, which are synthesized from carbon dioxide and water.",
+    ##"Role": "You are a 18th century Scientific with rigid adherence to reason and empirical evidence write a three paragraph performing a review of the google glasses",
+    ##"Simple": "Analize the following text of company and extract the company name, primary sector, the year founded(as an integer), and a list of top products(each product name as string) output the JSON response only. Text: Gallardo Innovations, stablisshed in 2018, ias a leader in applying furniture solutions, It focus in building sector. Their main product is tables, closets and their newest offering kitchen furniture",
+    "Simple": "Write a 100-word short story about a journey through a vast, dark forest. Constraint: Do not use the following words anywhere in your story: trees, dark, night, path, or shadow."
 }
 
 
@@ -138,9 +146,10 @@ if __name__ == "__main__":
         "Ollama (Mistral)": lambda p: query_ollama(p, model="mistral"),
     }
     cloud_models: Dict[str, Callable[[str], str]] = {
-        "OpenAI (GPT-3.5)": query_openai,
-        "Anthropic (Claude 3 Haiku)": query_anthropic,
-        "Google (Gemini Pro)": query_gemini,
+        ##"OpenAI (GPT-3.5)": query_openai,
+        ##"Anthropic (Claude 3 Haiku)": query_anthropic,
+        ##"Google (Gemini Pro)": query_gemini,
+        "Google (Gemini Flash 2.5)": query_gemini,
     }
 
     if args.models == "local":

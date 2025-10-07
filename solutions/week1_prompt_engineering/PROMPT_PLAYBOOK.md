@@ -31,11 +31,11 @@ Chain-of-Thought|Explain photosynthesis step-by-step, from inputs to outputs|Mis
 ## Model Summary (After Initial Pass)
 | Capability | Best Model(s) | Evidence Snippet | Notes |
 |------------|---------------|------------------|-------|
-| Explanatory Clarity | | | |
-| Chain-of-Thought | | | |
-| JSON Adherence | | | |
-| Persona Control | | | |
-| Instruction Strictness | | | |
+| Explanatory Clarity | Llama3 Gemini| | |
+| Chain-of-Thought | Llama3 Gemini | | successfully addapated to every prompt pattern |
+| JSON Adherence | All of them | | All of them performed well with the right instructions |
+| Persona Control | Gemini  |I have recently had occasion to examine a curious new contrivance, styled by some as "Google Glass," which purports to augment the human faculties of sight and information acquisition. | |
+| Instruction Strictness | Gemini Llama3| Into the immense wood, the traveler stepped. A canopy of dense boughs blocked the sky, letting slivers filter through the gloom.| All of them performed welll with the negative prompt |
 
 ## Insight Log
 Record notable surprises, regressions, or improvements.
