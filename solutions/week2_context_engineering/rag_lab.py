@@ -1,6 +1,7 @@
 import requests
 import json
 import chromadb
+import argparse
 
 # --- 1. Configuration ---
 OLLAMA_ENDPOINT = "http://localhost:11434/api"
@@ -64,38 +65,63 @@ def index_knowledge_base():
             )
     print("Indexing complete.")
 
-def query_rag_agent(user_query):
+def query_rag_agent(user_query, top_k, use_context=True):
     """
     Queries the RAG agent with a user's question.
     """
-    print(f"\n--- Querying for: '{user_query}' ---")
+    print(f"\n--- Querying for: '{user_query}' (k={top_k}), context={'enabled' if use_context else 'disabled'}) ---")
     
-    # 1. Get embedding for the user query
-    query_embedding = get_embedding(user_query)
-    if not query_embedding:
-        return "Sorry, I couldn't process your query."
+    prompt = ""
+    source_ids = ["N/A (no-context mode)"]
+    if use_context:
+        # 1. Get embedding for the user query
+        query_embedding = get_embedding(user_query)
+        if not query_embedding:
+            return "Sorry, I couldn't process your query.", source_ids
 
-    # 2. Query ChromaDB for relevant context
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=2  # Retrieve the top 2 most relevant documents
-    )
+        # 2. Query ChromaDB for relevant context
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=top_k
+        )
+        
+        context_parts = []
+        if results['documents']:
+            retrieved_ids = results['ids'][0]
+            retrieved_docs = results['documents'][0]
+            source_ids = retrieved_ids # Store which FAQ IDs were used
+
+            for i, (doc_id, doc_text) in enumerate(zip(retrieved_ids, retrieved_docs)):
+                context_parts.append(f"--- CONTEXT DOCUMENT {i+1} (Source ID: {doc_id}) ---\n{doc_text}\n--- END OF DOCUMENT {i+1} ---")      
+                
+            retrieved_context = "\n\n".join(context_parts)
+            print(f"Retrieved context:\n{retrieved_context}")
+
+            retrieved_context = "\n -".join(results['documents'][0]) if results['documents'] else "No relevant information found."
+            print(f"Retrieved context: \n -{retrieved_context}")
+
+            # 3. Construct the prompt for the LLM
+            prompt = f"""
+            You are a helpful FAQ assistant. A user has asked the following question:
+            '{user_query}'
+
+            Here is some context that might be relevant:
+            '{retrieved_context}'
+
+            Based on this context, please provide a clear and concise answer. If the context is not relevant, say so.
+            """
+        else:
+            print("No relevant context found in the knowledge base.")
+            prompt = f"No relevant context was found for the question: {user_query}. Please state that you don't have information on this topic."
+            source_ids = ["N/A (no context found)"]
+
+    # --- ADDED: No-Context Control ---
+    else: # If use_context is False
+        prompt = f"""
+        You are a helpful FAQ assistant. Answer the following user question based on your general knowledge, without any provided context.
+        Question: '{user_query}'
+        """
     
-    retrieved_context = "\n".join(results['documents'][0]) if results['documents'] else "No relevant information found."
-    
-    print(f"Retrieved context: {retrieved_context}")
-
-    # 3. Construct the prompt for the LLM
-    prompt = f"""
-    You are a helpful FAQ assistant. A user has asked the following question:
-    '{user_query}'
-
-    Here is some context that might be relevant:
-    '{retrieved_context}'
-
-    Based on this context, please provide a clear and concise answer. If the context is not relevant, say so.
-    """
-
     # 4. Send the prompt to the LLM
     try:
         response = requests.post(
@@ -103,12 +129,18 @@ def query_rag_agent(user_query):
             json={"prompt": prompt, **OLLAMA_CONFIG}
         )
         response.raise_for_status()
-        return json.loads(response.text)["response"]
+        return json.loads(response.text)["response"], source_ids
     except requests.exceptions.RequestException as e:
-        return f"Error communicating with the model: {e}"
+        return f"Error communicating with the model: {e}", source_ids
 
 # --- 5. Main Execution ---
 if __name__ == "__main__":
+    # --- ADDED: Argument Parser for CLI options ---
+    parser = argparse.ArgumentParser(description="Query a RAG agent with configurable options.")
+    parser.add_argument("query", type=str, help="The user query to ask the agent.")
+    parser.add_argument("--k", type=int, default=3, help="The number of documents to retrieve for context (top_k).")
+    parser.add_argument("--no-context", action="store_true", help="Run the query without retrieving context to test the base model.")
+    args = parser.parse_args()
     # Check if the collection is empty before indexing
     if collection.count() == 0:
         index_knowledge_base()
@@ -116,14 +148,26 @@ if __name__ == "__main__":
         print("Knowledge base is already indexed.")
 
     # --- Test Queries ---
-    test_queries = [
-        "How can I return a product?",
-        "What's the process for tracking my package?",
-        "Do you ship to Canada?",
-        "What are the support hours?",
-        "Can I pay with Bitcoin?" # A question not in the knowledge base
-    ]
+    
+    #test_queries = [
+    #    "How can I return a product?",
+    #    "What's the process for tracking my package?",
+    #    "Do you ship to Canada?",
+    #    "What are the support hours?",
+    #    "Can I pay with Bitcoin?" # A question not in the knowledge base
+    #]
 
-    for query in test_queries:
-        answer = query_rag_agent(query)
-        print(f"Answer: {answer}")
+    #for query in test_queries:
+    #    answer = query_rag_agent(query,4)
+    #    print(f"Answer: {answer}")
+
+        # --- ADDED: Argument Parser for CLI options ---
+        # Execute the query using CLI arguments
+    answer, sources = query_rag_agent(args.query, args.k, use_context=not args.no_context)
+    
+    print("\n" + "="*50)
+    print(f"Final Answer:")
+    print(f"Sources Used: {', '.join(sources)}") # --- ADDED: Display source citations
+    print(f"LLM Response: {answer.strip()}")
+    print("="*50)
+    

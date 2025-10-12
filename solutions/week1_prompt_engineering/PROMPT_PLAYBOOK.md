@@ -37,14 +37,45 @@ Chain-of-Thought|Explain photosynthesis step-by-step, from inputs to outputs|Mis
 | Persona Control | Gemini  |I have recently had occasion to examine a curious new contrivance, styled by some as "Google Glass," which purports to augment the human faculties of sight and information acquisition. | |
 | Instruction Strictness | Gemini Llama3| Into the immense wood, the traveler stepped. A canopy of dense boughs blocked the sky, letting slivers filter through the gloom.| All of them performed welll with the negative prompt |
 
+## Week 2 Section- context engineering
+
+| Query | Mode (raw/RAG) | k | Retrieved IDs | Strengths | Weaknesses | Failure Modes | Notes | 
+|-------|----------------|---|---------------|-----------|------------|---------------|-------|
+What are the support hours?|RAG|2|faq7 faq5| Found the correct document faq7 and provided the right answer|One of the retrieved k is irrelevant| irrelevant|Right Answer
+Can I pay with Bitcoin?|RAW|N/A|No context|Gave a general answer, indicating that bitcoi is one of the most widely accepted cryptocurrencies| wrong answer |no-hit, irrelevant| Review general information and concludes that bitcoin is accepted as a payment option |
+|What-s the process for tracking my package?|RAG|4|faq2 faq9 faq4 faq1|Retrieves the exact document faq2|faq 4 is related but doesnt help answer the question about the process, faq9 and faq1 are irrelevant, adding noise|irrelevant| The system provides the correct answer
+
+
+### Scoring (suggested 1–5 each)
+| Dimension | Definition | 1 | 5 | Score | Notes
+|-----------|------------|---|---|-------|------
+| Grounding | Uses factual retrieved content | Hallucinates | Fully cites sources | 5 | Answer based of retrieved documents 
+| Relevance | Stays on user ask | Tangential | Direct & focused | 5 | Answers direct and focused on the user question
+| Completeness | Covers key facts | Missing core | Fully addresses | 5 | Answers fully address the user querys
+| Brevity | Concise & purposeful | Verbose fluff | Tight answer | 5 | Answers are to the point, irrelevant noise ignored
+| Traceability | Clear which docs | Unclear | Explicit ids | 5 | with the code modifications is easy to trace the source ids used for generation
+
+Failure Mode Tags: `no-hit`, `irrelevant`, `partial`, `verbose`, `leakage`, `stale`.
+
+## Reflection Prompts
+- Where did additional context hurt answer quality?
+A: Introduces irrelevant documents, the LLM do extra work to filter out the noise and increase the risk to provide incorrect answer
+- Which failure mode appeared most often?
+A: The Irrelevant failure, the system struggle to find relevant documents
+- What is your next improvement priority & why?
+A: provide more context to the LLM with a combination of questions and answers to help to get more reliable answers
+
 ## Insight Log
 Record notable surprises, regressions, or improvements.
-- Day 1:
+- Week 1:
 
 Mistral model on the Chain-of-Thought prompt. It didn't just provide a weak answer; it entered a repetitive loop, broke its formatting, and introduced significant errors. This reveals a critical instability when faced with structured reasoning tasks
 
-- Day 2:
-- Day 3:
+- Week 2:
+ 
+ Relying on the LLM to ignore the bad information is inefficient and unreliable
+
+- Week 3:
 
 ---
 
