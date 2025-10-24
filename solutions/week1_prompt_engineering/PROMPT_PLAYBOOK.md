@@ -37,68 +37,6 @@ Chain-of-Thought|Explain photosynthesis step-by-step, from inputs to outputs|Mis
 | Persona Control | Gemini  |I have recently had occasion to examine a curious new contrivance, styled by some as "Google Glass," which purports to augment the human faculties of sight and information acquisition. | |
 | Instruction Strictness | Gemini Llama3| Into the immense wood, the traveler stepped. A canopy of dense boughs blocked the sky, letting slivers filter through the gloom.| All of them performed welll with the negative prompt |
 
-## Week 2 Section- context engineering
-
-| Query | Mode (raw/RAG) | k | Retrieved IDs | Strengths | Weaknesses | Failure Modes | Notes | 
-|-------|----------------|---|---------------|-----------|------------|---------------|-------|
-What are the support hours?|RAG|2|faq7 faq5| Found the correct document faq7 and provided the right answer|One of the retrieved k is irrelevant| irrelevant|Right Answer
-Can I pay with Bitcoin?|RAW|N/A|No context|Gave a general answer, indicating that bitcoi is one of the most widely accepted cryptocurrencies| wrong answer |no-hit, irrelevant| Review general information and concludes that bitcoin is accepted as a payment option |
-|What-s the process for tracking my package?|RAG|4|faq2 faq9 faq4 faq1|Retrieves the exact document faq2|faq 4 is related but doesnt help answer the question about the process, faq9 and faq1 are irrelevant, adding noise|irrelevant| The system provides the correct answer
-
-
-### Scoring (suggested 1–5 each)
-| Dimension | Definition | 1 | 5 | Score | Notes
-|-----------|------------|---|---|-------|------
-| Grounding | Uses factual retrieved content | Hallucinates | Fully cites sources | 5 | Answer based of retrieved documents 
-| Relevance | Stays on user ask | Tangential | Direct & focused | 5 | Answers direct and focused on the user question
-| Completeness | Covers key facts | Missing core | Fully addresses | 5 | Answers fully address the user querys
-| Brevity | Concise & purposeful | Verbose fluff | Tight answer | 5 | Answers are to the point, irrelevant noise ignored
-| Traceability | Clear which docs | Unclear | Explicit ids | 5 | with the code modifications is easy to trace the source ids used for generation
-
-Failure Mode Tags: `no-hit`, `irrelevant`, `partial`, `verbose`, `leakage`, `stale`.
-
-## Reflection Prompts
-- Where did additional context hurt answer quality?
-A: Introduces irrelevant documents, the LLM do extra work to filter out the noise and increase the risk to provide incorrect answer
-- Which failure mode appeared most often?
-A: The Irrelevant failure, the system struggle to find relevant documents
-- What is your next improvement priority & why?
-A: provide more context to the LLM with a combination of questions and answers to help to get more reliable answers
-
-## Week 3 Lab: Intro to Model Context Protocol (MCP)
-
-## Evaluation & Logging
-
-| Query | Intent Parsed | Tool? | Tool Latency ms | Success | Answer Quality (1–5) | Notes |
-|-------|---------------|-------|-----------------|---------|----------------------|-------|
-"what is the weather in El Salvador?"| get_weather | Yes | 0.8356571197509766 | Yes | 5 | Correctly parsed city and cited the data
-"what is the weather?" | None | No |  0 | Yes | 5 | Correclty indentified city was missing in the request 
-"what is the capital in El Salvador?"| None | No | 0 | Yes | 3 | Correctly identified no tool was needed, but was generic
-"I need the weather in San Jose"| get_weather | Yes | 0.020742416381835938 | Yes | 5 | Correctly identified city and cited the data
-"how hot is London?" | None | No | 0.0 | No | 1 | False Negative, Agent didnt undestand
-"what is the time in EST?" | get_current_time | Yes	| 0.0171661376953125 | Yes | 5 |	Correctly identified city and cited the data
-"Tell me the weather in London and the current time in UTC?" |	None |	No | 0.0 |	No | 1 | False Negative, Agent didnt undestand
-
-Success Criteria:
-- Tool invoked only when needed
-- City parameter extracted correctly (≥3 test cities)
-- Error handled (unknown city) without crash
-- Answer cites tool data explicitly (e.g., “According to tool…”) 
-
----
-## Reflection Prompts
-- When did the tool invocation NOT improve answer quality?
-Some queries were not asking weather information, it provided a generic error
-Asking how hot was the weather caused a false negative, the agent didnt understand and provided a wrong anser
-
-- Which failure mode appeared first? Root cause?
-The False Negative, some of my queries didn't match the simple regex pattern
-
-- Next production hardening step you’d prioritize?
-Improve the rigid regex, the agent failed cause the limited weather pattern regex
-
-
-
 ## Insight Log
 Record notable surprises, regressions, or improvements.
 - Week 1:
@@ -171,3 +109,86 @@ Structure: Llama3, for consistently providing well-formatted and structured outp
     *   Break down complex tasks into smaller, more manageable prompts.
 
 ---
+## Week 2 Section- context engineering
+
+| Query | Mode (raw/RAG) | k | Retrieved IDs | Strengths | Weaknesses | Failure Modes | Notes | 
+|-------|----------------|---|---------------|-----------|------------|---------------|-------|
+What are the support hours?|RAG|2|faq7 faq5| Found the correct document faq7 and provided the right answer|One of the retrieved k is irrelevant| irrelevant|Right Answer
+Can I pay with Bitcoin?|RAW|N/A|No context|Gave a general answer, indicating that bitcoi is one of the most widely accepted cryptocurrencies| wrong answer |no-hit, irrelevant| Review general information and concludes that bitcoin is accepted as a payment option |
+|What-s the process for tracking my package?|RAG|4|faq2 faq9 faq4 faq1|Retrieves the exact document faq2|faq 4 is related but doesnt help answer the question about the process, faq9 and faq1 are irrelevant, adding noise|irrelevant| The system provides the correct answer
+
+
+### Scoring (suggested 1–5 each)
+| Dimension | Definition | 1 | 5 | Score | Notes
+|-----------|------------|---|---|-------|------
+| Grounding | Uses factual retrieved content | Hallucinates | Fully cites sources | 5 | Answer based of retrieved documents 
+| Relevance | Stays on user ask | Tangential | Direct & focused | 5 | Answers direct and focused on the user question
+| Completeness | Covers key facts | Missing core | Fully addresses | 5 | Answers fully address the user querys
+| Brevity | Concise & purposeful | Verbose fluff | Tight answer | 5 | Answers are to the point, irrelevant noise ignored
+| Traceability | Clear which docs | Unclear | Explicit ids | 5 | with the code modifications is easy to trace the source ids used for generation
+
+Failure Mode Tags: `no-hit`, `irrelevant`, `partial`, `verbose`, `leakage`, `stale`.
+
+## Reflection Prompts
+- Where did additional context hurt answer quality?
+A: Introduces irrelevant documents, the LLM do extra work to filter out the noise and increase the risk to provide incorrect answer
+- Which failure mode appeared most often?
+A: The Irrelevant failure, the system struggle to find relevant documents
+- What is your next improvement priority & why?
+A: provide more context to the LLM with a combination of questions and answers to help to get more reliable answers
+
+## Insight Log
+Record notable surprises, regressions, or improvements.
+
+- Week 2:
+ 
+ Relying on the LLM to ignore the bad information is inefficient and unreliable
+
+- Week 3:
+
+Without a standard like MCP, AIs often try to call tools by just "guessing" how they work, which leads to errors or completely made-up answers. 
+
+
+## Week 3 Lab: Intro to Model Context Protocol (MCP)
+
+## Evaluation & Logging
+
+| Query | Intent Parsed | Tool? | Tool Latency ms | Success | Answer Quality (1–5) | Notes |
+|-------|---------------|-------|-----------------|---------|----------------------|-------|
+"what is the weather in El Salvador?"| get_weather | Yes | 0.8356571197509766 | Yes | 5 | Correctly parsed city and cited the data
+"what is the weather?" | None | No |  0 | Yes | 5 | Correclty indentified city was missing in the request 
+"what is the capital in El Salvador?"| None | No | 0 | Yes | 3 | Correctly identified no tool was needed, but was generic
+"I need the weather in San Jose"| get_weather | Yes | 0.020742416381835938 | Yes | 5 | Correctly identified city and cited the data
+"how hot is London?" | None | No | 0.0 | No | 1 | False Negative, Agent didnt undestand
+"what is the time in EST?" | get_current_time | Yes	| 0.0171661376953125 | Yes | 5 |	Correctly identified city and cited the data
+"Tell me the weather in London and the current time in UTC?" |	None |	No | 0.0 |	No | 1 | False Negative, Agent didnt undestand
+
+Success Criteria:
+- Tool invoked only when needed
+- City parameter extracted correctly (≥3 test cities)
+- Error handled (unknown city) without crash
+- Answer cites tool data explicitly (e.g., “According to tool…”) 
+
+---
+## Reflection Prompts
+- When did the tool invocation NOT improve answer quality?
+
+Some queries were not asking weather information, it provided a generic error
+Asking how hot was the weather caused a false negative, the agent didnt understand and provided a wrong anser
+
+- Which failure mode appeared first? Root cause?
+
+The False Negative, some of my queries didn't match the simple regex pattern
+
+- Next production hardening step you’d prioritize?
+
+Improve the rigid regex, the agent failed cause the limited weather pattern regex
+
+
+## Insight Log
+Record notable surprises, regressions, or improvements.
+
+
+- Without a standard like MCP, AIs often try to call tools by just "guessing" how they work, which leads to errors or completely made-up answers.
+- Adding the multi tool gives more power to the Agent to use external data and services
+
