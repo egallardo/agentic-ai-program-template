@@ -57,6 +57,37 @@ Can I pay with Bitcoin?|RAW|N/A|No context|Gave a general answer, indicating tha
 
 Failure Mode Tags: `no-hit`, `irrelevant`, `partial`, `verbose`, `leakage`, `stale`.
 
+## Week 2 Section- context engineering
+## Evaluation & Logging
+
+| Query | Intent Parsed | Tool? | Tool Latency ms | Success | Answer Quality (1–5) | Notes |
+|-------|---------------|-------|-----------------|---------|----------------------|-------|
+"what is the weather in El Salvador?"| get_weather | Yes | 0.8356571197509766 | Yes | 5 | Correctly parsed city and cited the data
+"what is the weather?" | None | No |  0 | Yes | 5 | Correclty indentified city was missing in the request 
+"what is the capital in El Salvador?"| None | No | 0 | Yes | 3 | Correctly identified no tool was needed, but was generic
+"I need the weather in San Jose"| get_weather | Yes | 0.020742416381835938 | Yes | 5 | Correctly identified city and cited the data
+"how hot is London?" | None | false | 0.0 | No | 1 | False Negative, Agent didnt undestand
+"what is the time in EST?"| get_current_time | Yes | 0.0171661376953125 | Yes | 5 | Correctly 
+"Tell me the weather in London and the current time in UTC?"| None | false | 0.0 | No | 1 | False Negative, Agent didnt undestand
+
+Success Criteria:
+- Tool invoked only when needed
+- City parameter extracted correctly (≥3 test cities)
+- Error handled (unknown city) without crash
+- Answer cites tool data explicitly (e.g., “According to tool…”) 
+
+---
+## 11. Reflection Prompts
+- When did the tool invocation NOT improve answer quality?
+Some queries were not asking weather information, it provided a generic error
+Asking how hot was the weather caused a false negative, the agent didnt understand and provided a wrong anser
+
+- Which failure mode appeared first? Root cause?
+The False Negative, some of my queries didn't match the simple regex pattern
+
+- Next production hardening step you’d prioritize?
+Improve the rigid regex, the agent failed cause the limited weather pattern regex
+
 ## Reflection Prompts
 - Where did additional context hurt answer quality?
 A: Introduces irrelevant documents, the LLM do extra work to filter out the noise and increase the risk to provide incorrect answer
@@ -76,6 +107,8 @@ Mistral model on the Chain-of-Thought prompt. It didn't just provide a weak answ
  Relying on the LLM to ignore the bad information is inefficient and unreliable
 
 - Week 3:
+
+Without a standard like MCP, AIs often try to call tools by just "guessing" how they work, which leads to errors or completely made-up answers.
 
 ---
 

@@ -22,7 +22,13 @@ try:
 except ImportError:  # pragma: no cover
     raise SystemExit("Run from project root so Python can resolve mcp_weather_tool.")
 
+try:
+    from mcp_time_tool import invoke_get_current_time, TOOL_DESCRIPTOR
+except ImportError:  # pragma: no cover
+    raise SystemExit("Run from project root so Python can resolve mcp_time_tool.")
+
 WEATHER_PATTERN = re.compile(r"weather (?:in|at|for) (?P<city>[A-Za-z\-\s]+)\??", re.IGNORECASE)
+TIME_PATTERN = re.compile(r"time in (?P<timezone>[A-Za-z]+)\??", re.IGNORECASE)
 
 @dataclass
 class InvocationLog:
@@ -39,6 +45,8 @@ class InvocationLog:
 def parse_intent(query: str) -> Optional[str]:
     if WEATHER_PATTERN.search(query):
         return "get_weather"
+    if TIME_PATTERN.search(query): # Adding new parse intent to recognize phrases about time
+        return "get_current_time"
     return None
 
 
@@ -63,23 +71,38 @@ def build_answer_with_tool(query: str, weather: Dict[str, Any]) -> str:
 
 def run_agent(query: str) -> InvocationLog:
     intent = parse_intent(query)
-    if intent != "get_weather":
+    start = time.time()
+
+    if intent == "get_weather":
+        city = extract_city(query)
+        start = time.time()
+        params: Dict[str, Any] = {"city": city}
+        try:
+            if not city:
+                raise ValueError("City not detected. Use format 'weather in <city>'.")
+            weather = invoke_get_weather(city)
+            ans = build_answer_with_tool(query, weather)
+            latency = (time.time() - start) * 1000
+            return InvocationLog(query, intent, True, params, True, latency, None, ans)
+        except Exception as e:  # pylint: disable=broad-except
+            latency = (time.time() - start) * 1000
+            return InvocationLog(query, intent, True, params, False, latency, str(e), f"Error: {e}")
+
+    elif intent == "get_current_time":
+        try:
+            m = TIME_PATTERN.search(query)
+            timezone = m.group("timezone").strip() if m else "UTC"
+
+            time_data = invoke_get_current_time(timezone)
+            ans = f"The current time in {timezone.upper()} is {time_data['current_time']}."
+            latency = (time.time() - start) * 1000
+            return InvocationLog(query, intent, True, {"timezone": timezone}, True, latency, None, ans)
+        except Exception as e:
+            latency = (time.time() - start) * 1000
+            return InvocationLog(query, intent, True, {}, False, latency, str(e), f"Error: {e}")
+    else:
         ans = answer_without_tool(query)
         return InvocationLog(query, intent, False, {}, True, 0.0, None, ans)
-
-    city = extract_city(query)
-    start = time.time()
-    params: Dict[str, Any] = {"city": city}
-    try:
-        if not city:
-            raise ValueError("City not detected. Use format 'weather in <city>'.")
-        weather = invoke_get_weather(city)
-        ans = build_answer_with_tool(query, weather)
-        latency = (time.time() - start) * 1000
-        return InvocationLog(query, intent, True, params, True, latency, None, ans)
-    except Exception as e:  # pylint: disable=broad-except
-        latency = (time.time() - start) * 1000
-        return InvocationLog(query, intent, True, params, False, latency, str(e), f"Error: {e}")
 
 
 def main():
