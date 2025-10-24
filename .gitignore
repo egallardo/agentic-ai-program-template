@@ -168,3 +168,7 @@ node_modules/
 *.rej
 *.tmp
 *.temp
+solutions/week2_context_engineering/chroma_db/22d00ae4-fc75-44cb-a1d0-461f3b0f4702/data_level0.bin
+solutions/week2_context_engineering/chroma_db/22d00ae4-fc75-44cb-a1d0-461f3b0f4702/header.bin
+solutions/week2_context_engineering/chroma_db/22d00ae4-fc75-44cb-a1d0-461f3b0f4702/length.bin
+solutions/week2_context_engineering/chroma_db/22d00ae4-fc75-44cb-a1d0-461f3b0f4702/link_lists.bin
