@@ -57,7 +57,16 @@ Can I pay with Bitcoin?|RAW|N/A|No context|Gave a general answer, indicating tha
 
 Failure Mode Tags: `no-hit`, `irrelevant`, `partial`, `verbose`, `leakage`, `stale`.
 
-## Week 2 Section- context engineering
+## Reflection Prompts
+- Where did additional context hurt answer quality?
+A: Introduces irrelevant documents, the LLM do extra work to filter out the noise and increase the risk to provide incorrect answer
+- Which failure mode appeared most often?
+A: The Irrelevant failure, the system struggle to find relevant documents
+- What is your next improvement priority & why?
+A: provide more context to the LLM with a combination of questions and answers to help to get more reliable answers
+
+## Week 3 Lab: Intro to Model Context Protocol (MCP)
+
 ## Evaluation & Logging
 
 | Query | Intent Parsed | Tool? | Tool Latency ms | Success | Answer Quality (1–5) | Notes |
@@ -66,9 +75,9 @@ Failure Mode Tags: `no-hit`, `irrelevant`, `partial`, `verbose`, `leakage`, `sta
 "what is the weather?" | None | No |  0 | Yes | 5 | Correclty indentified city was missing in the request 
 "what is the capital in El Salvador?"| None | No | 0 | Yes | 3 | Correctly identified no tool was needed, but was generic
 "I need the weather in San Jose"| get_weather | Yes | 0.020742416381835938 | Yes | 5 | Correctly identified city and cited the data
-"how hot is London?" | None | false | 0.0 | No | 1 | False Negative, Agent didnt undestand
-"what is the time in EST?"| get_current_time | Yes | 0.0171661376953125 | Yes | 5 | Correctly 
-"Tell me the weather in London and the current time in UTC?"| None | false | 0.0 | No | 1 | False Negative, Agent didnt undestand
+"how hot is London?" | None | No | 0.0 | No | 1 | False Negative, Agent didnt undestand
+"what is the time in EST?" | get_current_time | Yes	| 0.0171661376953125 | Yes | 5 |	Correctly identified city and cited the data
+"Tell me the weather in London and the current time in UTC?" |	None |	No | 0.0 |	No | 1 | False Negative, Agent didnt undestand
 
 Success Criteria:
 - Tool invoked only when needed
@@ -77,7 +86,7 @@ Success Criteria:
 - Answer cites tool data explicitly (e.g., “According to tool…”) 
 
 ---
-## 11. Reflection Prompts
+## Reflection Prompts
 - When did the tool invocation NOT improve answer quality?
 Some queries were not asking weather information, it provided a generic error
 Asking how hot was the weather caused a false negative, the agent didnt understand and provided a wrong anser
@@ -88,13 +97,7 @@ The False Negative, some of my queries didn't match the simple regex pattern
 - Next production hardening step you’d prioritize?
 Improve the rigid regex, the agent failed cause the limited weather pattern regex
 
-## Reflection Prompts
-- Where did additional context hurt answer quality?
-A: Introduces irrelevant documents, the LLM do extra work to filter out the noise and increase the risk to provide incorrect answer
-- Which failure mode appeared most often?
-A: The Irrelevant failure, the system struggle to find relevant documents
-- What is your next improvement priority & why?
-A: provide more context to the LLM with a combination of questions and answers to help to get more reliable answers
+
 
 ## Insight Log
 Record notable surprises, regressions, or improvements.
@@ -108,7 +111,7 @@ Mistral model on the Chain-of-Thought prompt. It didn't just provide a weak answ
 
 - Week 3:
 
-Without a standard like MCP, AIs often try to call tools by just "guessing" how they work, which leads to errors or completely made-up answers.
+Without a standard like MCP, AIs often try to call tools by just "guessing" how they work, which leads to errors or completely made-up answers. 
 
 ---
 
